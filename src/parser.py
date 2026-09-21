@@ -32,12 +32,17 @@ class Parser:
         "Chrome/120.0.0.0 YaBrowser/24.1.0.0 Safari/537.36"
     }
 
+    SECTION_CONTAINER_CLASS = "toggle-card"
+    SECTION_TITLE_CLASS = "toggle-card__title"
+    DOCUMENT_ROW_CLASS = "document-list__item--row"
+    DOCUMENT_TITLE_CLASS = "document-list__item-title"
+
     def __init__(self, indicator: Indicator):
         """
         Инициализирует парсер для конкретного показателя
 
         Args:
-            indicator (Indicator): Объект показателя данными для парсинга
+            indicator (Indicator): Объект показателя с данными для парсинга
 
         Raises:
             ValueError: Если объект Indicator содержит некорректные данные
@@ -108,10 +113,10 @@ class Parser:
         Raises:
             LookupError: Если секция, документ, ссылка не найдены на странице
         """
-        sections = soup.find_all("div", class_="toggle-card")
+        sections = soup.find_all("div", class_=self.SECTION_CONTAINER_CLASS)
         target_section = None
         for section in sections:
-            title_tag = section.find("div", class_="toggle-card__title")
+            title_tag = section.find("div", class_=self.SECTION_TITLE_CLASS)
             title = title_tag.get_text(strip=True) if title_tag else "нет заголовка"
             if self.indicator.section in title:
                 target_section = section
@@ -121,11 +126,11 @@ class Parser:
             raise LookupError(
                 f"Секция '{self.indicator.section}' не найдена на странице"
             )
-        documents = target_section.find_all("div", class_="document-list__item")
+        documents = target_section.find_all("div", class_=self.DOCUMENT_ROW_CLASS)
         logger.debug(f"Найдено документов в секции: {len(documents)}")
 
         for doc in documents:
-            title_tag = doc.find("div", class_="document-list__item-title")
+            title_tag = doc.find("div", class_=self.DOCUMENT_TITLE_CLASS)
             title = title_tag.get_text(strip=True) if title_tag else "нет заголовка"
 
             if self.indicator.filename in title:
@@ -146,7 +151,7 @@ class Parser:
 
     def _download_file(self, full_url: str) -> str:
         """
-        Скачивает файл по переданной ссылке и сохраняет его
+        Скачивает файл по переданной ссылке и сохраняет
 
         Args:
             full_url (str): Полный URL для скачивания файла
